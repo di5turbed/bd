@@ -379,12 +379,10 @@ namespace bd
             }
         }
 
-        // Модифицированный метод: создает редактируемые таблицы с кнопкой сохранения
         private async Task CreateTabForTableAsync(string tableName)
         {
             TabPage tabPage = new TabPage(tableName);
 
-            // Нижняя панель для кнопки сохранения
             Panel pnlBottom = new Panel { Dock = DockStyle.Bottom, Height = 45 };
             Button btnSaveTable = new Button
             {
@@ -402,33 +400,29 @@ namespace bd
             {
                 Dock = DockStyle.Fill,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                AllowUserToAddRows = true,     // Разрешаем вставлять строки прямо в сетку
-                AllowUserToDeleteRows = true,  // Разрешаем удалять строки кнопкой Delete
-                ReadOnly = false,              // РЕЖИМ РЕДАКТИРОВАНИЯ ЯЧЕЕК ВКЛЮЧЕН!
+                AllowUserToAddRows = true,
+                AllowUserToDeleteRows = true,
+                ReadOnly = false,
                 BackgroundColor = Color.WhiteSmoke
             };
 
             DataTable dataTable = new DataTable();
-            // Используем DataAdapter для связывания табличных данных с БД
             NpgsqlDataAdapter adapter = new NpgsqlDataAdapter($"SELECT * FROM \"{tableName}\"", connectionString);
 
             try
             {
-                // Загружаем данные асинхронно
                 await Task.Run(() => adapter.Fill(dataTable));
                 dgv.DataSource = dataTable;
 
-                // Вешаем логику сохранения на кнопку
                 btnSaveTable.Click += async (s, e) =>
                 {
                     try
                     {
-                        dgv.EndEdit(); // Фиксируем текущую редактируемую ячейку (если пользователь забыл выйти из нее)
+                        dgv.EndEdit();
                         statusLabel.Text = $"Сохранение изменений в {tableName}...";
 
                         await Task.Run(() =>
                         {
-                            // CommandBuilder автоматически создаёт команды UPDATE/INSERT/DELETE на основе структуры первичного ключа
                             using (var builder = new NpgsqlCommandBuilder(adapter))
                             {
                                 adapter.Update(dataTable);
@@ -447,7 +441,7 @@ namespace bd
 
                 tabPage.Controls.Add(dgv);
                 tabPage.Controls.Add(pnlBottom);
-                dgv.BringToFront(); // Размещаем таблицу над нижней панелью
+                dgv.BringToFront();
 
                 tabControlMain.TabPages.Add(tabPage);
             }
